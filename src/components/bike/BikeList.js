@@ -1,69 +1,48 @@
-import React, { useEffect, useState } from 'react';
-import {useQuery, gql} from '@apollo/client'
+import React, { useState } from 'react';
+import { useQuery } from '@apollo/client'
 import { GET_ALL_BIKES } from './services/graphql/Queries'
-import "antd/dist/antd.css";
-import { Table } from 'antd';
+import BootstrapTable from 'react-bootstrap-table-next';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import paginationFactory from 'react-bootstrap-table2-paginator';
+import columns from '../constants/bikeColumns'
 
-const columns = [
-    {
-        title: "Number",
-        width: 100,
-        dataIndex: "id",
-        key: "id",
-        fixed: "left",
-    },
-    {
-        title: "Model",
-        width: 100,
-        dataIndex: "model",
-        key: "model",
-        fixed: "left",
-    },
-    {
-        title: "Year",
-        dataIndex: "year",
-        key: "year",
-        width: 150,
-    },
-    {
-        title: "Price",
-        dataIndex: "price",
-        key: "price",
-        width: 150,
-    },
-  ];
-
+const BikeList = () => {
+  const [bikeData, setBikeData ] = useState([]);
+  
   const getBikes = (bikesData) => {
-    const data = [];
-    console.log("entro a get bikes")
-    bikesData?.bikes.map((bike) =>
-      data.push({
-        key: bike?.id,
-        id: bike?.id,
-        model: bike?.model,
-        year: bike?.year,
-        price: bike?.price,
-      })
+    return bikesData?.bikes.map((bike) => ({
+      key: bike?.id,
+      id: bike?.id,
+      model: bike?.model,
+      year: bike?.year,
+      price: bike?.price,
+      bikeType: bike?.bikeType?.name,
+      manufacturer: bike?.manufacturer?.name,
+    })
     );
-    return data;
   };
 
-    const BikeList = ()=> {
+  const AllBikes = () => {
+    const { loading, error, data } = useQuery(GET_ALL_BIKES);
+    
+    if (loading) return <h2>Loading...</h2>;
+    if (error) return <h2>`Error! ${error.message}`</h2>
 
-      const AllBikes = () => {
-        const { loading, error, data } = useQuery(GET_ALL_BIKES);
-        console.log(data);
-        
-            if (loading) return <h2>Loading...</h2>;
-            if (error) return  <h2>`Error! ${error.message}`</h2>
-      
-        return <Table columns={columns} datasource={()=>getBikes(data)}/>;
-      };
+    return <BootstrapTable
+      keyField='id'
+      data={(getBikes(data))}
+      columns={columns}
+      striped
+      hover
+      condensed
+      pagination={paginationFactory()}
+    />
+  };
 
-        return (
-            <AllBikes/>
-        )
-      }
+  return (
+    <AllBikes />
+  )
+}
 
 
 export default BikeList;
